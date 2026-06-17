@@ -5,6 +5,7 @@
   "description": "Google Sheets and Apps Script WordPress content plan uploader.",
   "type": "module",
   "scripts": {
+    "build:gas": "node scripts/build-gas.mjs",
     "test": "node --test test/*.test.mjs",
     "test:watch": "node --test --watch test/*.test.mjs"
   },

@@ -29,11 +29,35 @@ Run pure logic tests locally with Node:
 npm test
 ```
 
+Build the paste-ready Apps Script bundle:
+
+```bash
+npm run build:gas
+```
+
 The Apps Script files live in `src/`. Files are written as ES modules so pure functions can be tested locally, then copied into Apps Script with compatible exports during deployment.
 
 ## Apps Script Deployment
 
-The source files are organized as ES modules for local tests. For Apps Script deployment, bundle or copy the modules into a V8-compatible Apps Script project so globals from `src/Code.js` are available as menu callbacks.
+The source files are organized as ES modules for local tests. For Apps Script deployment, generate a V8-compatible bundle so globals from `src/Code.js` are available as menu callbacks.
+
+```bash
+npm run build:gas
+```
+
+Then install it in a test spreadsheet:
+
+1. Open a Google Sheet.
+2. Go to **Extensions > Apps Script**.
+3. Delete the default code.
+4. Paste the contents of `apps-script/Code.gs`.
+5. Open **Project Settings** and ensure the manifest is visible.
+6. Replace the manifest with `apps-script/appsscript.json`.
+7. Save the Apps Script project.
+8. Reload the spreadsheet.
+9. Confirm the `WP Content Uploader` menu appears.
+
+On first run, Google will show an authorization screen. For an internal unverified script, choose **Advanced > Go to project > Allow**.
 
 Required project properties per site:
 
@@ -48,6 +72,8 @@ For `site_key = ruangguru`, use:
 WP_RUANGGURU_USERNAME
 WP_RUANGGURU_APP_PASSWORD
 ```
+
+Set those in Apps Script through **Project Settings > Script Properties**.
 
 ## Operating Model
 
