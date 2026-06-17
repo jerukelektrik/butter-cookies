@@ -1,6 +1,6 @@
 # WordPress Content Plan Uploader Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Build a Google Apps Script project that prepares a multi-site Google Sheets content plan and uploads reviewed Google Docs articles to WordPress.
 
@@ -40,7 +40,7 @@
 - Create: `test/constants.test.mjs`
 - Modify: `README.md`
 
-- [ ] **Step 1: Add local Node test setup**
+- [x] **Step 1: Add local Node test setup**
 
 Create `package.json`:
 
@@ -71,7 +71,7 @@ dist/
 .DS_Store
 ```
 
-- [ ] **Step 2: Add Apps Script manifest**
+- [x] **Step 2: Add Apps Script manifest**
 
 Create `appsscript.json`:
 
@@ -92,7 +92,7 @@ Create `appsscript.json`:
 }
 ```
 
-- [ ] **Step 3: Write constants test first**
+- [x] **Step 3: Write constants test first**
 
 Create `test/constants.test.mjs`:
 
@@ -131,7 +131,7 @@ test('SEO meta limits match the approved ranges', () => {
 });
 ```
 
-- [ ] **Step 4: Run test to verify it fails**
+- [x] **Step 4: Run test to verify it fails**
 
 Run:
 
@@ -141,7 +141,7 @@ npm test
 
 Expected: FAIL because `src/constants.js` does not exist.
 
-- [ ] **Step 5: Add constants implementation**
+- [x] **Step 5: Add constants implementation**
 
 Create `src/constants.js`:
 
@@ -243,7 +243,7 @@ export function propertyKeyForSite(siteKey, suffix) {
 }
 ```
 
-- [ ] **Step 6: Run test to verify it passes**
+- [x] **Step 6: Run test to verify it passes**
 
 Run:
 
@@ -253,7 +253,7 @@ npm test
 
 Expected: PASS for all constants tests.
 
-- [ ] **Step 7: Update README with local test command**
+- [x] **Step 7: Update README with local test command**
 
 Add this section to `README.md`:
 
@@ -269,7 +269,7 @@ npm test
 The Apps Script files live in `src/`. Files are written as ES modules so pure functions can be tested locally, then copied into Apps Script with compatible exports during deployment.
 ````
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 Run:
 
@@ -287,7 +287,7 @@ Expected: commit succeeds.
 - Create: `test/sheets.test.mjs`
 - Modify: `src/constants.js`
 
-- [ ] **Step 1: Write tests for header mapping and formulas**
+- [x] **Step 1: Write tests for header mapping and formulas**
 
 Create `test/sheets.test.mjs`:
 
@@ -338,7 +338,7 @@ test('buildMetaCheckFormula creates description warning formula', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -348,7 +348,7 @@ npm test
 
 Expected: FAIL because `src/sheets.js` does not exist.
 
-- [ ] **Step 3: Implement pure sheet helpers**
+- [x] **Step 3: Implement pure sheet helpers**
 
 Create `src/sheets.js`:
 
@@ -486,7 +486,7 @@ export function applyMetaConditionalFormatting(sheet) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -496,7 +496,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -514,7 +514,7 @@ Expected: commit succeeds.
 - Create: `test/auth.test.mjs`
 - Modify: `src/constants.js`
 
-- [ ] **Step 1: Write authorization tests**
+- [x] **Step 1: Write authorization tests**
 
 Create `test/auth.test.mjs`:
 
@@ -551,7 +551,7 @@ test('maskCredentialStatus reports missing keys without leaking values', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -561,7 +561,7 @@ npm test
 
 Expected: FAIL because `src/auth.js` does not exist.
 
-- [ ] **Step 3: Implement authorization helpers**
+- [x] **Step 3: Implement authorization helpers**
 
 Create `src/auth.js`:
 
@@ -606,7 +606,7 @@ export function assertAuthorizedUser(users, email) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -616,7 +616,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -633,7 +633,7 @@ Expected: commit succeeds.
 - Create: `src/validation.js`
 - Create: `test/validation.test.mjs`
 
-- [ ] **Step 1: Write validation tests**
+- [x] **Step 1: Write validation tests**
 
 Create `test/validation.test.mjs`:
 
@@ -711,7 +711,7 @@ test('valid create_draft can process with SEO warnings', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -721,7 +721,7 @@ npm test
 
 Expected: FAIL because `src/validation.js` does not exist.
 
-- [ ] **Step 3: Implement validation logic**
+- [x] **Step 3: Implement validation logic**
 
 Create `src/validation.js`:
 
@@ -784,7 +784,7 @@ export function validateContentRow(row, context) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -794,7 +794,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -811,7 +811,7 @@ Expected: commit succeeds.
 - Create: `src/docs.js`
 - Create: `test/docs.test.mjs`
 
-- [ ] **Step 1: Write Google Doc extraction tests**
+- [x] **Step 1: Write Google Doc extraction tests**
 
 Create `test/docs.test.mjs`:
 
@@ -849,7 +849,7 @@ test('cleanExportedHtml removes scripts, styles, and Google wrapper noise', () =
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -859,7 +859,7 @@ npm test
 
 Expected: FAIL because `src/docs.js` does not exist.
 
-- [ ] **Step 3: Implement document helpers**
+- [x] **Step 3: Implement document helpers**
 
 Create `src/docs.js`:
 
@@ -915,7 +915,7 @@ export function fetchGoogleDocExportHtml(docUrl, fetcher = UrlFetchApp.fetch) {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -925,7 +925,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -942,7 +942,7 @@ Expected: commit succeeds.
 - Create: `src/wordpress.js`
 - Create: `test/wordpress.test.mjs`
 
-- [ ] **Step 1: Write WordPress client tests**
+- [x] **Step 1: Write WordPress client tests**
 
 Create `test/wordpress.test.mjs`:
 
@@ -1011,7 +1011,7 @@ test('buildEditUrl uses configured pattern or default wp-admin pattern', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1021,7 +1021,7 @@ npm test
 
 Expected: FAIL because `src/wordpress.js` does not exist.
 
-- [ ] **Step 3: Implement WordPress payload helpers and client shell**
+- [x] **Step 3: Implement WordPress payload helpers and client shell**
 
 Create `src/wordpress.js`:
 
@@ -1104,7 +1104,7 @@ export class WordPressClient {
 }
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -1114,7 +1114,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -1133,7 +1133,7 @@ Expected: commit succeeds.
 - Modify: `src/wordpress.js`
 - Modify: `src/sheets.js`
 
-- [ ] **Step 1: Write orchestration tests**
+- [x] **Step 1: Write orchestration tests**
 
 Create `test/uploader.test.mjs`:
 
@@ -1214,7 +1214,7 @@ test('processContentRow returns error for missing marker', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1224,7 +1224,7 @@ npm test
 
 Expected: FAIL because `src/uploader.js` does not exist.
 
-- [ ] **Step 3: Implement orchestration**
+- [x] **Step 3: Implement orchestration**
 
 Create `src/uploader.js`:
 
@@ -1307,7 +1307,7 @@ Then add this import at the top of `src/uploader.js`:
 import { fetchGoogleDocExportHtml } from './docs.js';
 ```
 
-- [ ] **Step 4: Run tests to verify pass**
+- [x] **Step 4: Run tests to verify pass**
 
 Run:
 
@@ -1317,7 +1317,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -1336,7 +1336,7 @@ Expected: commit succeeds.
 - Modify: `src/uploader.js`
 - Modify: `README.md`
 
-- [ ] **Step 1: Add global menu entrypoints**
+- [x] **Step 1: Add global menu entrypoints**
 
 Create `src/Code.js`:
 
@@ -1391,7 +1391,7 @@ export function uploadAllSites() {
 }
 ```
 
-- [ ] **Step 2: Add Apps Script runtime note**
+- [x] **Step 2: Add Apps Script runtime note**
 
 Because Apps Script does not execute ES module imports directly when files are pasted into the editor, document the deployment path in `README.md`:
 
@@ -1415,7 +1415,7 @@ WP_RUANGGURU_APP_PASSWORD
 ```
 ````
 
-- [ ] **Step 3: Run tests**
+- [x] **Step 3: Run tests**
 
 Run:
 
@@ -1425,7 +1425,7 @@ npm test
 
 Expected: PASS. `src/Code.js` may not have direct Node tests because it wraps Apps Script globals.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 Run:
 
@@ -1443,7 +1443,7 @@ Expected: commit succeeds.
 - Modify: `test/wordpress.test.mjs`
 - Modify: `src/validation.js`
 
-- [ ] **Step 1: Add tests for taxonomy and media helpers**
+- [x] **Step 1: Add tests for taxonomy and media helpers**
 
 Append to `test/wordpress.test.mjs`:
 
@@ -1463,7 +1463,7 @@ test('parseTermSearchResult returns exact case-insensitive match', () => {
 });
 ```
 
-- [ ] **Step 2: Run tests to verify failure**
+- [x] **Step 2: Run tests to verify failure**
 
 Run:
 
@@ -1473,7 +1473,7 @@ npm test
 
 Expected: FAIL because the new helper exports do not exist.
 
-- [ ] **Step 3: Implement taxonomy and media helpers**
+- [x] **Step 3: Implement taxonomy and media helpers**
 
 Add to `src/wordpress.js`:
 
@@ -1538,7 +1538,7 @@ Add these methods inside `WordPressClient`:
   }
 ```
 
-- [ ] **Step 4: Run tests**
+- [x] **Step 4: Run tests**
 
 Run:
 
@@ -1548,7 +1548,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
@@ -1566,7 +1566,7 @@ Expected: commit succeeds.
 - Create: `docs/manual-qa.md`
 - Modify: `docs/superpowers/plans/2026-06-17-wordpress-content-plan-uploader.md` only to check off completed steps during execution
 
-- [ ] **Step 1: Add manual QA checklist**
+- [x] **Step 1: Add manual QA checklist**
 
 Create `docs/manual-qa.md`:
 
@@ -1613,7 +1613,7 @@ Create `docs/manual-qa.md`:
 - Confirm `Upload Log` receives a row.
 ```
 
-- [ ] **Step 2: Expand README operating instructions**
+- [x] **Step 2: Expand README operating instructions**
 
 Add to `README.md`:
 
@@ -1639,7 +1639,7 @@ Add to `README.md`:
 - WordPress credentials stay in Apps Script Properties, not in the spreadsheet.
 ````
 
-- [ ] **Step 3: Run full tests**
+- [x] **Step 3: Run full tests**
 
 Run:
 
@@ -1649,7 +1649,7 @@ npm test
 
 Expected: PASS.
 
-- [ ] **Step 4: Review plan/spec coverage**
+- [x] **Step 4: Review plan/spec coverage**
 
 Check:
 
@@ -1657,7 +1657,7 @@ Run the placeholder scan from this plan's self-review section against implementa
 
 Expected: no output.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run:
 
