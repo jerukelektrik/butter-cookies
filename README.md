@@ -4,7 +4,7 @@ Google Sheets and Google Apps Script tool for uploading reviewed content plans t
 
 ## Current Status
 
-This repository currently contains the approved design draft for a multi-site WordPress content plan uploader. Implementation has not started yet.
+This repository contains a Google Apps Script implementation for a multi-site WordPress content plan uploader, plus local Node tests for the pure logic modules.
 
 Read the design spec:
 
@@ -48,3 +48,23 @@ For `site_key = ruangguru`, use:
 WP_RUANGGURU_USERNAME
 WP_RUANGGURU_APP_PASSWORD
 ```
+
+## Operating Model
+
+1. Keep writer briefs, review notes, and keyword tables above this marker in each Google Doc:
+
+```text
+=== START WORDPRESS CONTENT ===
+```
+
+2. Put only final article content below the marker.
+3. Use `upload_action = create_draft` for new WordPress drafts.
+4. Use `upload_action = update_existing` only when `wordpress_post_id` points to the correct post.
+5. Run `Validate/Preview Current Site` before upload.
+6. Run `Upload Current Site` for focused work, or `Upload All Sites` when all active tabs are ready.
+
+## Safety Notes
+
+- `status` is editorial and is not overwritten by the uploader.
+- `update_existing` preserves WordPress post status. If the target post is published, content changes can go live immediately.
+- WordPress credentials stay in Apps Script Properties, not in the spreadsheet.
