@@ -4,8 +4,10 @@ import {
   WordPressClient,
   buildBasicAuthHeader,
   buildEditUrl,
+  buildMediaHeaders,
   buildPostPayload,
   normalizeBaseUrl,
+  parseTermSearchResult,
 } from '../src/wordpress.js';
 
 test('buildBasicAuthHeader creates Basic auth header', () => {
@@ -98,4 +100,104 @@ test('WordPressClient throws REST error messages', () => {
   });
 
   assert.throws(() => client.getPost(123), /WordPress request failed 400: bad request/);
+});
+
+test('buildMediaHeaders creates content disposition with filename', () => {
+  assert.deepEqual(buildMediaHeaders('admin', 'secret', 'image.jpg'), {
+    Authorization: buildBasicAuthHeader('admin', 'secret'),
+    'Content-Disposition': 'attachment; filename="image.jpg"',
+  });
+});
+
+test('parseTermSearchResult returns exact case-insensitive match', () => {
+  const terms = [
+    { id: 1, name: 'Bahasa Indonesia' },
+    { id: 2, name: 'IPA' },
+  ];
+  assert.deepEqual(parseTermSearchResult(terms, 'bahasa indonesia'), { id: 1, name: 'Bahasa Indonesia' });
+});
+
+test('WordPressClient resolves existing and new taxonomy terms', () => {
+  const calls = [];
+  const client = new WordPressClient({
+    site: { wordpress_base_url: 'https://example.com' },
+    credentials: { username: 'admin', appPassword: 'app pass' },
+    fetcher: (url, options) => {
+      calls.push({ url, options });
+      if (url.endsWith('/wp-json/wp/v2/categories?search=Parent')) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => '[{"id":11,"name":"Parent"}]',
+        };
+      }
+      if (url.endsWith('/wp-json/wp/v2/categories?search=Child')) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => '[]',
+        };
+      }
+      if (url.endsWith('/wp-json/wp/v2/categories')) {
+        return {
+          getResponseCode: () => 201,
+          getContentText: () => '{"id":12,"name":"Child","parent":11}',
+        };
+      }
+      if (url.endsWith('/wp-json/wp/v2/tags?search=tag%20one')) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => '[{"id":21,"name":"Tag One"}]',
+        };
+      }
+      if (url.endsWith('/wp-json/wp/v2/tags?search=tag%20two')) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => '[]',
+        };
+      }
+      if (url.endsWith('/wp-json/wp/v2/tags')) {
+        return {
+          getResponseCode: () => 201,
+          getContentText: () => '{"id":22,"name":"tag two"}',
+        };
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    },
+  });
+
+  assert.deepEqual(
+    client.resolveTaxonomy({ parentCategory: 'Parent', childCategory: 'Child', tags: ['tag one', 'tag two'] }),
+    { categoryIds: [11, 12], tagIds: [21, 22] }
+  );
+  assert.equal(calls[2].options.payload, '{"name":"Child","parent":11}');
+  assert.equal(calls[5].options.payload, '{"name":"tag two"}');
+});
+
+test('WordPressClient downloads and uploads featured image', () => {
+  const blob = { bytes: 'fake image' };
+  const calls = [];
+  const client = new WordPressClient({
+    site: { wordpress_base_url: 'https://example.com' },
+    credentials: { username: 'admin', appPassword: 'app pass' },
+    fetcher: (url, options) => {
+      calls.push({ url, options });
+      if (url === 'https://cdn.example.com/images/photo.jpg?size=large') {
+        return {
+          getResponseCode: () => 200,
+          getBlob: () => blob,
+        };
+      }
+      if (url === 'https://example.com/wp-json/wp/v2/media') {
+        return {
+          getResponseCode: () => 201,
+          getContentText: () => '{"id":44}',
+        };
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    },
+  });
+
+  assert.equal(client.uploadFeaturedImage('https://cdn.example.com/images/photo.jpg?size=large'), 44);
+  assert.equal(calls[1].options.method, 'post');
+  assert.equal(calls[1].options.payload, blob);
+  assert.deepEqual(calls[1].options.headers, buildMediaHeaders('admin', 'app pass', 'photo.jpg'));
 });

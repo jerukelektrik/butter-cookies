@@ -10,6 +10,18 @@ export function buildBasicAuthHeader(username, appPassword) {
   return `Basic ${Utilities.base64Encode(raw)}`;
 }
 
+export function parseTermSearchResult(terms, targetName) {
+  const normalized = String(targetName || '').trim().toLowerCase();
+  return terms.find((term) => String(term.name || '').trim().toLowerCase() === normalized) || null;
+}
+
+export function buildMediaHeaders(username, appPassword, filename) {
+  return {
+    Authorization: buildBasicAuthHeader(username, appPassword),
+    'Content-Disposition': `attachment; filename="${filename}"`,
+  };
+}
+
 export function buildPostPayload(row, options) {
   const payload = {
     title: row.post_title,
@@ -74,5 +86,49 @@ export class WordPressClient {
 
   getPost(postId) {
     return this.request(`/wp-json/wp/v2/posts/${encodeURIComponent(postId)}`);
+  }
+
+  searchTerms(taxonomy, name) {
+    return this.request(`/wp-json/wp/v2/${taxonomy}?search=${encodeURIComponent(name)}`);
+  }
+
+  createTerm(taxonomy, payload) {
+    return this.request(`/wp-json/wp/v2/${taxonomy}`, { method: 'post', payload });
+  }
+
+  resolveTerm(taxonomy, name, extraPayload = {}) {
+    const existing = parseTermSearchResult(this.searchTerms(taxonomy, name), name);
+    if (existing) return existing;
+    return this.createTerm(taxonomy, { name, ...extraPayload });
+  }
+
+  resolveTaxonomy({ parentCategory, childCategory, tags }) {
+    const parent = this.resolveTerm('categories', parentCategory);
+    const child = this.resolveTerm('categories', childCategory, { parent: parent.id });
+    const tagIds = tags.map((tag) => this.resolveTerm('tags', tag).id);
+    return { categoryIds: [parent.id, child.id], tagIds };
+  }
+
+  uploadFeaturedImage(imageUrl) {
+    const imageResponse = this.fetcher(imageUrl, { method: 'get', muteHttpExceptions: true });
+    const imageStatus = imageResponse.getResponseCode();
+    if (imageStatus < 200 || imageStatus >= 300) {
+      throw new Error(`Featured image download failed with HTTP ${imageStatus}`);
+    }
+
+    const filename = imageUrl.split('/').pop().split('?')[0] || 'featured-image.jpg';
+    const uploadResponse = this.fetcher(`${this.baseUrl}/wp-json/wp/v2/media`, {
+      method: 'post',
+      payload: imageResponse.getBlob(),
+      headers: buildMediaHeaders(this.credentials.username, this.credentials.appPassword, filename),
+      muteHttpExceptions: true,
+    });
+    const uploadStatus = uploadResponse.getResponseCode();
+    const text = uploadResponse.getContentText();
+    const body = text ? JSON.parse(text) : {};
+    if (uploadStatus < 200 || uploadStatus >= 300) {
+      throw new Error(`Featured image upload failed ${uploadStatus}: ${body.message || text}`);
+    }
+    return body.id;
   }
 }
