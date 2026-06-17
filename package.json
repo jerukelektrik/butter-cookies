@@ -1,0 +1,14 @@
+{
+  "name": "butter-cookies",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Google Sheets and Apps Script WordPress content plan uploader.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "test:watch": "node --test --watch test/*.test.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

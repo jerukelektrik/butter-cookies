@@ -21,3 +21,12 @@ Read the design spec:
 - Apps Script Properties for WordPress credentials.
 - Authorized user checks and upload logging.
 
+## Local Development
+
+Run pure logic tests locally with Node:
+
+```bash
+npm test
+```
+
+The Apps Script files live in `src/`. Files are written as ES modules so pure functions can be tested locally, then copied into Apps Script with compatible exports during deployment.
