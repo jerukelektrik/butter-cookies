@@ -1,5 +1,5 @@
 import { SHEET_NAMES } from './constants.js';
-import { readWordPressCredentials } from './auth.js';
+import { assertAuthorizedUser, readWordPressCredentials } from './auth.js';
 import { fetchGoogleDocExportHtml } from './docs.js';
 import { getSheetRecords, normalizeBoolean, writeContentRowResult } from './sheets.js';
 import { validateContentRow, splitTags } from './validation.js';
@@ -81,6 +81,12 @@ export function getActiveSites(spreadsheet) {
     .filter((site) => site.site_key && normalizeBoolean(site.active));
 }
 
+export function getAuthorizedUsers(spreadsheet) {
+  const usersSheet = spreadsheet.getSheetByName(SHEET_NAMES.authorizedUsers);
+  if (!usersSheet) return [];
+  return getSheetRecords(usersSheet).map(({ record }) => record);
+}
+
 export function getSiteForSheet(spreadsheet, sheet) {
   const sheetName = sheet.getName();
   return getActiveSites(spreadsheet).find((site) => site.site_key === sheetName) || null;
@@ -123,6 +129,7 @@ export function runUploadForAllSites(spreadsheet, userEmail, options = {}) {
 }
 
 export function runPreviewForSheet(spreadsheet, sheet, site, userEmail, options = {}) {
+  assertAuthorizedUser(getAuthorizedUsers(spreadsheet), userEmail);
   const properties = options.properties || PropertiesService.getScriptProperties();
   const credentials = site ? readWordPressCredentials(site.site_key, properties) : { username: '', appPassword: '' };
   const fetchDocHtml = options.fetchDocHtml || fetchGoogleDocExportHtml;
@@ -154,6 +161,7 @@ export function runPreviewForSheet(spreadsheet, sheet, site, userEmail, options 
 }
 
 export function runUploadForSheet(spreadsheet, sheet, site, userEmail, options = {}) {
+  assertAuthorizedUser(getAuthorizedUsers(spreadsheet), userEmail);
   const properties = options.properties || PropertiesService.getScriptProperties();
   const credentials = site ? readWordPressCredentials(site.site_key, properties) : { username: '', appPassword: '' };
   const processedAt = options.processedAt || new Date();
