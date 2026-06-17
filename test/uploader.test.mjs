@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { processContentRow } from '../src/uploader.js';
+import { processContentRow, withUploadLock } from '../src/uploader.js';
 
 function fakeDependencies(overrides = {}) {
   return {
@@ -71,4 +71,40 @@ test('processContentRow returns error for missing marker', () => {
   );
   assert.equal(result.status, 'error');
   assert.match(result.error_notes, /Google Doc marker is missing/);
+});
+
+test('withUploadLock releases lock after successful run', () => {
+  const events = [];
+  const result = withUploadLock(
+    () => {
+      events.push('callback');
+      return 'done';
+    },
+    {
+      lock: {
+        tryLock: () => {
+          events.push('tryLock');
+          return true;
+        },
+        releaseLock: () => events.push('releaseLock'),
+      },
+    }
+  );
+  assert.equal(result, 'done');
+  assert.deepEqual(events, ['tryLock', 'callback', 'releaseLock']);
+});
+
+test('withUploadLock rejects concurrent upload runs', () => {
+  assert.throws(
+    () =>
+      withUploadLock(() => 'never', {
+        lock: {
+          tryLock: () => false,
+          releaseLock: () => {
+            throw new Error('release should not run');
+          },
+        },
+      }),
+    /Another upload run is already active/
+  );
 });

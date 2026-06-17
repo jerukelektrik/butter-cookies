@@ -1,7 +1,7 @@
 import { SHEET_NAMES } from './constants.js';
 import { assertAuthorizedUser, readWordPressCredentials } from './auth.js';
 import { fetchGoogleDocExportHtml } from './docs.js';
-import { getSheetRecords, normalizeBoolean, writeContentRowResult } from './sheets.js';
+import { appendUploadLog, getSheetRecords, normalizeBoolean, writeContentRowResult } from './sheets.js';
 import { validateContentRow, splitTags } from './validation.js';
 import { WordPressClient, buildPostPayload, buildEditUrl } from './wordpress.js';
 
@@ -96,6 +96,24 @@ export function getContentRows(sheet) {
   return getSheetRecords(sheet).filter(({ record }) => String(record.upload_action || '').trim());
 }
 
+export function generateRunId() {
+  if (typeof Utilities !== 'undefined' && Utilities.getUuid) return Utilities.getUuid();
+  return `run-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+export function withUploadLock(callback, options = {}) {
+  const lock = options.lock || (typeof LockService !== 'undefined' ? LockService.getScriptLock() : null);
+  if (!lock) return callback();
+  if (!lock.tryLock(1000)) {
+    throw new Error('Another upload run is already active.');
+  }
+  try {
+    return callback();
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 export function runPreviewForActiveSheet(spreadsheet, userEmail, options = {}) {
   const sheet = spreadsheet.getActiveSheet();
   const site = getSiteForSheet(spreadsheet, sheet);
@@ -113,19 +131,24 @@ export function runPreviewForAllSites(spreadsheet, userEmail, options = {}) {
 }
 
 export function runUploadForActiveSheet(spreadsheet, userEmail, options = {}) {
-  const sheet = spreadsheet.getActiveSheet();
-  const site = getSiteForSheet(spreadsheet, sheet);
-  return runUploadForSheet(spreadsheet, sheet, site, userEmail, options);
+  return withUploadLock(() => {
+    const sheet = spreadsheet.getActiveSheet();
+    const site = getSiteForSheet(spreadsheet, sheet);
+    return runUploadForSheet(spreadsheet, sheet, site, userEmail, { ...options, runId: options.runId || generateRunId() });
+  }, options);
 }
 
 export function runUploadForAllSites(spreadsheet, userEmail, options = {}) {
-  return getActiveSites(spreadsheet).map((site) => {
-    const sheet = spreadsheet.getSheetByName(site.site_key);
-    if (!sheet) {
-      return { site_key: site.site_key, processed: 0, errors: 1, message: `Sheet not found: ${site.site_key}` };
-    }
-    return runUploadForSheet(spreadsheet, sheet, site, userEmail, options);
-  });
+  return withUploadLock(() => {
+    const runId = options.runId || generateRunId();
+    return getActiveSites(spreadsheet).map((site) => {
+      const sheet = spreadsheet.getSheetByName(site.site_key);
+      if (!sheet) {
+        return { site_key: site.site_key, processed: 0, errors: 1, message: `Sheet not found: ${site.site_key}` };
+      }
+      return runUploadForSheet(spreadsheet, sheet, site, userEmail, { ...options, runId });
+    });
+  }, options);
 }
 
 export function runPreviewForSheet(spreadsheet, sheet, site, userEmail, options = {}) {
@@ -134,8 +157,9 @@ export function runPreviewForSheet(spreadsheet, sheet, site, userEmail, options 
   const credentials = site ? readWordPressCredentials(site.site_key, properties) : { username: '', appPassword: '' };
   const fetchDocHtml = options.fetchDocHtml || fetchGoogleDocExportHtml;
   const processedAt = options.processedAt || new Date();
+  const runId = options.runId || generateRunId();
   const rows = getContentRows(sheet);
-  const summary = { site_key: site?.site_key || sheet.getName(), userEmail, processed: 0, errors: 0, warnings: 0 };
+  const summary = { site_key: site?.site_key || sheet.getName(), userEmail, runId, processed: 0, errors: 0, warnings: 0 };
 
   rows.forEach(({ rowNumber, record }) => {
     let doc = { hasMarker: false };
@@ -152,6 +176,18 @@ export function runPreviewForSheet(spreadsheet, sheet, site, userEmail, options 
       error_notes: [...validation.errors, doc.error?.message].filter(Boolean).join('; '),
     };
     writeContentRowResult(sheet, rowNumber, result, processedAt);
+    appendUploadLog(spreadsheet, {
+      timestamp: processedAt,
+      run_id: runId,
+      user_email: userEmail,
+      site_key: summary.site_key,
+      tab_name: sheet.getName(),
+      row_number: rowNumber,
+      upload_action: record.upload_action,
+      wordpress_post_id: record.wordpress_post_id,
+      result: result.status,
+      message: [result.validation_notes, result.error_notes].filter(Boolean).join('; '),
+    });
     summary.processed += 1;
     if (result.status === 'error') summary.errors += 1;
     if (result.status === 'warning') summary.warnings += 1;
@@ -165,6 +201,7 @@ export function runUploadForSheet(spreadsheet, sheet, site, userEmail, options =
   const properties = options.properties || PropertiesService.getScriptProperties();
   const credentials = site ? readWordPressCredentials(site.site_key, properties) : { username: '', appPassword: '' };
   const processedAt = options.processedAt || new Date();
+  const runId = options.runId || generateRunId();
   const client =
     options.client ||
     (site
@@ -176,11 +213,23 @@ export function runUploadForSheet(spreadsheet, sheet, site, userEmail, options =
       : null);
   const dependencies = options.dependencies || createRuntimeDependencies(client || {}, site || {});
   const rows = getContentRows(sheet);
-  const summary = { site_key: site?.site_key || sheet.getName(), userEmail, processed: 0, errors: 0, warnings: 0 };
+  const summary = { site_key: site?.site_key || sheet.getName(), userEmail, runId, processed: 0, errors: 0, warnings: 0 };
 
   rows.forEach(({ rowNumber, record }) => {
     const result = processContentRow(record, { site, credentials }, dependencies);
     writeContentRowResult(sheet, rowNumber, result, processedAt);
+    appendUploadLog(spreadsheet, {
+      timestamp: processedAt,
+      run_id: runId,
+      user_email: userEmail,
+      site_key: summary.site_key,
+      tab_name: sheet.getName(),
+      row_number: rowNumber,
+      upload_action: record.upload_action,
+      wordpress_post_id: result.wordpress_post_id || record.wordpress_post_id,
+      result: result.status,
+      message: [result.validation_notes, result.error_notes].filter(Boolean).join('; '),
+    });
     summary.processed += 1;
     if (result.status === 'error') summary.errors += 1;
     if (result.status === 'warning') summary.warnings += 1;

@@ -5,6 +5,7 @@ import {
   mapRowToObject,
   buildMetaLengthFormula,
   buildMetaCheckFormula,
+  buildUploadLogRow,
   normalizeBoolean,
 } from '../src/sheets.js';
 
@@ -40,5 +41,16 @@ test('buildMetaCheckFormula creates description warning formula', () => {
   assert.equal(
     buildMetaCheckFormula('Q2', 'description'),
     '=IF(Q2="","",IF(Q2<155,"meta description too short",IF(Q2>162,"meta description too long","")))'
+  );
+});
+
+test('buildUploadLogRow maps entries to upload log header order', () => {
+  assert.deepEqual(
+    buildUploadLogRow(['timestamp', 'run_id', 'result', 'message'], {
+      timestamp: '2026-06-17T00:00:00Z',
+      run_id: 'run-1',
+      result: 'uploaded',
+    }),
+    ['2026-06-17T00:00:00Z', 'run-1', 'uploaded', '']
   );
 });

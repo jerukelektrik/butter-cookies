@@ -91,6 +91,16 @@ export function setupContentSheet(sheet) {
   applyMetaConditionalFormatting(sheet);
 }
 
+export function buildUploadLogRow(headers, entry) {
+  return headers.map((header) => entry[header] ?? '');
+}
+
+export function appendUploadLog(spreadsheet, entry) {
+  const sheet = ensureSheet(spreadsheet, SHEET_NAMES.uploadLog);
+  ensureHeaders(sheet, UPLOAD_LOG_HEADERS);
+  sheet.appendRow(buildUploadLogRow(UPLOAD_LOG_HEADERS, entry));
+}
+
 export function writeContentRowResult(sheet, rowNumber, result, processedAt = new Date()) {
   const values = sheet.getDataRange().getValues();
   const headers = values[0] || [];
