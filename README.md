@@ -30,3 +30,21 @@ npm test
 ```
 
 The Apps Script files live in `src/`. Files are written as ES modules so pure functions can be tested locally, then copied into Apps Script with compatible exports during deployment.
+
+## Apps Script Deployment
+
+The source files are organized as ES modules for local tests. For Apps Script deployment, bundle or copy the modules into a V8-compatible Apps Script project so globals from `src/Code.js` are available as menu callbacks.
+
+Required project properties per site:
+
+```text
+WP_<SITE_KEY>_USERNAME
+WP_<SITE_KEY>_APP_PASSWORD
+```
+
+For `site_key = ruangguru`, use:
+
+```text
+WP_RUANGGURU_USERNAME
+WP_RUANGGURU_APP_PASSWORD
+```

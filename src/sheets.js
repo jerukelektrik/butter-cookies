@@ -28,6 +28,16 @@ export function mapRowToObject(headers, row) {
   }, {});
 }
 
+export function getSheetRecords(sheet) {
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0] || [];
+  return values.slice(1).map((row, index) => ({
+    rowNumber: index + 2,
+    values: row,
+    record: mapRowToObject(headers, row),
+  }));
+}
+
 export function normalizeBoolean(value) {
   if (value === true) return true;
   const normalized = String(value || '').trim().toLowerCase();
@@ -79,6 +89,25 @@ export function setupContentSheet(sheet) {
   applyContentDataValidation(sheet);
   applyMetaFormulas(sheet);
   applyMetaConditionalFormatting(sheet);
+}
+
+export function writeContentRowResult(sheet, rowNumber, result, processedAt = new Date()) {
+  const values = sheet.getDataRange().getValues();
+  const headers = values[0] || [];
+  const headerMap = buildHeaderMap(headers);
+  const writable = {
+    wordpress_post_id: result.wordpress_post_id,
+    wordpress_draft_url: result.wordpress_draft_url,
+    upload_status: result.status,
+    validation_notes: result.validation_notes,
+    error_notes: result.error_notes,
+    last_processed_at: processedAt,
+  };
+
+  Object.entries(writable).forEach(([header, value]) => {
+    if (headerMap[header] === undefined || value === undefined) return;
+    sheet.getRange(rowNumber, headerMap[header] + 1).setValue(value);
+  });
 }
 
 export function applyContentDataValidation(sheet) {
