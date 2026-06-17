@@ -7,9 +7,13 @@
   "scripts": {
     "build:gas": "node scripts/build-gas.mjs",
     "test": "node --test test/*.test.mjs",
-    "test:watch": "node --test --watch test/*.test.mjs"
+    "test:watch": "node --test --watch test/*.test.mjs",
+    "build": "node build.js"
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.1"
   }
 }
