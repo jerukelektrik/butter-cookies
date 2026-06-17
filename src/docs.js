@@ -36,10 +36,15 @@ export function cleanExportedHtml(html) {
 export function fetchGoogleDocExportHtml(docUrl, fetcher = UrlFetchApp.fetch) {
   const docId = extractGoogleDocId(docUrl);
   const exportUrl = `https://docs.google.com/document/d/${docId}/export?format=html`;
+  const headers = {};
+  if (typeof ScriptApp !== 'undefined') {
+    headers['Authorization'] = `Bearer ${ScriptApp.getOAuthToken()}`;
+  }
   const response = fetcher(exportUrl, {
     method: 'get',
     muteHttpExceptions: true,
     followRedirects: true,
+    headers,
   });
   const status = response.getResponseCode();
   if (status < 200 || status >= 300) {
