@@ -237,3 +237,54 @@ export function runUploadForSheet(spreadsheet, sheet, site, userEmail, options =
 
   return summary;
 }
+
+export function runTestConnectionForActiveSheet(spreadsheet, userEmail, options = {}) {
+  assertAuthorizedUser(getAuthorizedUsers(spreadsheet), userEmail);
+  const sheet = spreadsheet.getActiveSheet();
+  const site = getSiteForSheet(spreadsheet, sheet);
+  if (!site) {
+    throw new Error(`Active sheet "${sheet.getName()}" does not match any active site in the "Sites" tab.`);
+  }
+
+  const properties = options.properties || PropertiesService.getScriptProperties();
+  const credentials = readWordPressCredentials(site.site_key, properties);
+
+  if (!credentials.username || !credentials.appPassword) {
+    throw new Error(`Credentials for "${site.site_key}" are missing in Script Properties. Ensure WP_${site.site_key.toUpperCase()}_USERNAME and WP_${site.site_key.toUpperCase()}_APP_PASSWORD are set.`);
+  }
+
+  const client =
+    options.client ||
+    new WordPressClient({
+      site,
+      credentials,
+      fetcher: options.fetcher || UrlFetchApp.fetch,
+    });
+
+  try {
+    const response = client.getCurrentUser('view');
+    let roles = [];
+    let capabilities = {};
+    try {
+      const editResponse = client.getCurrentUser('edit');
+      roles = editResponse.roles || [];
+      capabilities = editResponse.capabilities || {};
+    } catch (e) {
+      // Ignored if user doesn't have permission to query edit profile context
+    }
+    return {
+      success: true,
+      username: response.slug || response.username || '',
+      name: response.name || '',
+      id: response.id,
+      roles,
+      capabilities,
+    };
+  } catch (error) {
+    return {
+      success: false,
+      error: error.message,
+    };
+  }
+}
+

@@ -26,14 +26,12 @@ test('validateContentRow skips skip action', () => {
   assert.equal(result.shouldProcess, false);
 });
 
-test('create_draft requires title, doc, marker, and categories', () => {
+test('create_draft requires title, doc, and marker', () => {
   const result = validateContentRow({ upload_action: 'create_draft' }, { ...baseContext, docHasMarker: false });
   assert.deepEqual(result.errors, [
     'post_title is required for create_draft',
     'google_doc_url is required',
     'Google Doc marker is missing',
-    'parent_category is required',
-    'child_category is required',
   ]);
 });
 

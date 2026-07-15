@@ -30,6 +30,11 @@ function setupTemplate() {
     globalThis.setupTemplate();
   }
 }
+function testConnectionCurrentSite() {
+  if (typeof globalThis !== 'undefined' && globalThis.testConnectionCurrentSite) {
+    globalThis.testConnectionCurrentSite();
+  }
+}
 function validatePreviewCurrentSite() {
   if (typeof globalThis !== 'undefined' && globalThis.validatePreviewCurrentSite) {
     globalThis.validatePreviewCurrentSite();
@@ -48,6 +53,14 @@ function uploadCurrentSite() {
 function uploadAllSites() {
   if (typeof globalThis !== 'undefined' && globalThis.uploadAllSites) {
     globalThis.uploadAllSites();
+  }
+}
+
+// Unused dummy function to force Google Apps Script to auto-detect and request Docs and Drive permissions
+function dummyPermissionsTrigger() {
+  if (false) {
+    DocumentApp.create('dummy');
+    DriveApp.getFiles();
   }
 }
 `;

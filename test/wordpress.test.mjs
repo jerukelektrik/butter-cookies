@@ -201,3 +201,53 @@ test('WordPressClient downloads and uploads featured image', () => {
   assert.equal(calls[1].options.payload, blob);
   assert.deepEqual(calls[1].options.headers, buildMediaHeaders('admin', 'app pass', 'photo.jpg'));
 });
+
+test('WordPressClient getCurrentUser requests current user profile', () => {
+  let capturedUrl = '';
+  const client = new WordPressClient({
+    site: { wordpress_base_url: 'https://example.com' },
+    credentials: { username: 'admin', appPassword: 'app pass' },
+    fetcher: (url) => {
+      capturedUrl = url;
+      return {
+        getResponseCode: () => 200,
+        getContentText: () => '{"id":12,"name":"Admin","slug":"admin"}',
+      };
+    },
+  });
+
+  assert.deepEqual(client.getCurrentUser('view'), { id: 12, name: 'Admin', slug: 'admin' });
+  assert.equal(capturedUrl, 'https://example.com/wp-json/wp/v2/users/me');
+
+  client.getCurrentUser('edit');
+  assert.equal(capturedUrl, 'https://example.com/wp-json/wp/v2/users/me?context=edit');
+});
+
+test('WordPressClient resolveTaxonomy handles empty categories', () => {
+  const calls = [];
+  const client = new WordPressClient({
+    site: { wordpress_base_url: 'https://example.com' },
+    credentials: { username: 'admin', appPassword: 'app pass' },
+    fetcher: (url, options) => {
+      calls.push({ url, options });
+      if (url.includes('tags?search=tag')) {
+        return {
+          getResponseCode: () => 200,
+          getContentText: () => '[]',
+        };
+      }
+      if (url.includes('tags')) {
+        return {
+          getResponseCode: () => 201,
+          getContentText: () => '{"id":21,"name":"tag"}',
+        };
+      }
+      throw new Error(`Unexpected URL ${url}`);
+    },
+  });
+
+  assert.deepEqual(
+    client.resolveTaxonomy({ parentCategory: '', childCategory: '', tags: ['tag'] }),
+    { categoryIds: [], tagIds: [21] }
+  );
+});

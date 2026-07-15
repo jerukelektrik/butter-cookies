@@ -88,6 +88,11 @@ export class WordPressClient {
     return this.request(`/wp-json/wp/v2/posts/${encodeURIComponent(postId)}`);
   }
 
+  getCurrentUser(context = 'view') {
+    const path = `/wp-json/wp/v2/users/me${context === 'edit' ? '?context=edit' : ''}`;
+    return this.request(path);
+  }
+
   searchTerms(taxonomy, name) {
     return this.request(`/wp-json/wp/v2/${taxonomy}?search=${encodeURIComponent(name)}`);
   }
@@ -103,10 +108,20 @@ export class WordPressClient {
   }
 
   resolveTaxonomy({ parentCategory, childCategory, tags }) {
-    const parent = this.resolveTerm('categories', parentCategory);
-    const child = this.resolveTerm('categories', childCategory, { parent: parent.id });
-    const tagIds = tags.map((tag) => this.resolveTerm('tags', tag).id);
-    return { categoryIds: [parent.id, child.id], tagIds };
+    const categoryIds = [];
+    if (parentCategory && String(parentCategory).trim()) {
+      const parent = this.resolveTerm('categories', parentCategory);
+      categoryIds.push(parent.id);
+      if (childCategory && String(childCategory).trim()) {
+        const child = this.resolveTerm('categories', childCategory, { parent: parent.id });
+        categoryIds.push(child.id);
+      }
+    } else if (childCategory && String(childCategory).trim()) {
+      const child = this.resolveTerm('categories', childCategory);
+      categoryIds.push(child.id);
+    }
+    const tagIds = (tags || []).map((tag) => this.resolveTerm('tags', tag).id);
+    return { categoryIds, tagIds };
   }
 
   uploadFeaturedImage(imageUrl) {

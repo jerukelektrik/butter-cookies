@@ -42,8 +42,6 @@ export function validateContentRow(row, context) {
   if (!String(row.post_title || '').trim()) errors.push(`post_title is required for ${action}`);
   if (!String(row.google_doc_url || '').trim()) errors.push('google_doc_url is required');
   if (!context.docHasMarker) errors.push('Google Doc marker is missing');
-  if (!String(row.parent_category || '').trim()) errors.push('parent_category is required');
-  if (!String(row.child_category || '').trim()) errors.push('child_category is required');
   if (action === 'update_existing' && !String(row.wordpress_post_id || '').trim()) {
     errors.push('wordpress_post_id is required for update_existing');
   }
