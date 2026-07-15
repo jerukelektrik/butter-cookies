@@ -66,6 +66,10 @@ function dummyPermissionsTrigger() {
 `;
 
   fs.appendFileSync('dist/Code.js', entrypoints);
+
+  console.log('Copying appsscript.json to dist...');
+  fs.copyFileSync('appsscript.json', 'dist/appsscript.json');
+
   console.log('Build complete! File generated at dist/Code.js');
 }
 
